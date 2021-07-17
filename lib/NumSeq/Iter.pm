@@ -125,7 +125,11 @@ sub numseq_parse {
     eval {
         $res = _numseq_parse_or_iter('parse', @_);
     };
-    if ($@) { return [400, "Parse fail: $@"] }
+    if ($@) {
+        my $errmsg = $@;
+        $errmsg =~ s/(.+) at .+/$1/s; # ux: remove file+line number information from error message
+        return [400, "Parse fail: $errmsg"];
+    }
     [200, "OK", $res];
 }
 
