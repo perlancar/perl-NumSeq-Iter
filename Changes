@@ -1,3 +1,9 @@
+0.003   2021-07-17  Released-By: PERLANCAR; Urgency: medium
+
+	- [ux] Remove file+line number information from parse error
+	  message.
+
+
 0.002   2021-07-17  Released-By: PERLANCAR; Urgency: medium
 
 	- Add function: numseq_parse().
