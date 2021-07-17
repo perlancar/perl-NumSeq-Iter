@@ -10,11 +10,12 @@ use strict;
 use warnings;
 
 use Exporter qw(import);
-our @EXPORT_OK = qw(numseq_iter);
+our @EXPORT_OK = qw(numseq_iter numseq_parse);
 
 my $re_num = qr/(?:[+-]?[0-9]+(?:\.[0-9]+)?)/;
 
-sub numseq_iter {
+sub _numseq_parse_or_iter {
+    my $which = shift;
     my $opts = ref($_[0]) eq 'HASH' ? shift : {};
     my $numseq = shift;
 
@@ -25,7 +26,7 @@ sub numseq_iter {
     }
     die "Please specify one or more number in number sequence: '$numseq'" unless @nums;
 
-    my $has_ellipsis;
+    my $has_ellipsis = 0;
     if ($numseq =~ s/\A\s*,\s*\.\.\.//) {
         die "Please specify at least three number in number sequence before ellipsis" unless @nums >= 3;
         $has_ellipsis++;
@@ -74,6 +75,16 @@ sub numseq_iter {
         die "Can't determine the pattern from number sequence: ".join(", ", @nums);
     }
 
+    if ($which eq 'parse') {
+        return {
+            numbers => \@nums,
+            has_ellipsis => $has_ellipsis,
+            ($has_ellipsis ? (last_number => $last_num) : ()),
+            type => $is_arithmetic ? 'arithmetic' : ($is_geometric ? 'geometric' : 'itemized'),
+            inc => $inc,
+        };
+    }
+
     my $i = 0;
     my $cur;
     my $ends;
@@ -105,6 +116,19 @@ sub numseq_iter {
     };
 }
 
+sub numseq_iter {
+    _numseq_parse_or_iter('iter', @_);
+}
+
+sub numseq_parse {
+    my $res;
+    eval {
+        $res = _numseq_parse_or_iter('parse', @_);
+    };
+    if ($@) { return [400, "Parse fail: $@"] }
+    [200, "OK", $res];
+}
+
 1;
 #ABSTRACT: Generate a coderef iterator from a number sequence specification (e.g. '1,3,5,...,101')
 
@@ -112,10 +136,15 @@ sub numseq_iter {
 
 =head1 SYNOPSIS
 
-  use NumSeq::Iter qw(numseq_iter);
+  use NumSeq::Iter qw(numseq_parse numseq_iter);
 
   my $iter = numseq_iter('1,3,5,...,13');
   while (my $val = $iter->()) { ... } # 1,3,5,7,9,11,13
+
+  my $res = numseq_parse(''); # [400, "Parse fail: Please specify one or more number in number sequence"]
+  my $res = numseq_parse('1,3,5');        # [200, "OK", {numbers=>[1,2,3], has_ellipsis=>0, type=>'arithmetic', inc=>2}]
+  my $res = numseq_parse('1,3,9,...');    # [200, "OK", {numbers=>[1,3,9], has_ellipsis=>1, last_number=>undef, type=>'geometric', inc=>3}]
+  my $res = numseq_parse('1,3,5,...,10'); # [200, "OK", {numbers=>[1,2,3], has_ellipsis=>1, last_number=>10, type=>'arithmetic', inc=>2}]
 
 
 =head1 DESCRIPTION
@@ -148,6 +177,12 @@ Options:
 =over
 
 =back
+
+=head2 numseq_parse
+
+ my $res = numseq_parse([ \%opts ], $spec); # enveloped response
+
+See L</numseq_iter> for list of known options.
 
 
 =head1 SEE ALSO
