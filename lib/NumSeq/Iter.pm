@@ -191,7 +191,12 @@ See L</numseq_iter> for list of known options.
 
 =head1 SEE ALSO
 
-L<IntRange::Iter>, L<Range::Iter>
+Other iterators: L<IntRange::Iter>, L<Range::Iter>
+
+CLI for this module: L<seq-numseq> (from L<App::seq::numseq>). There's another
+CLI named L<numseq> (from L<App::numseq>), but it is only tangentially related.
+
+L<Sah::Schemas::NumSeq>
 
 Raku's lazy lists.
 
