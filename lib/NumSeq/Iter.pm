@@ -90,9 +90,9 @@ sub _numseq_parse_or_iter {
     my $cur;
     my $ends;
     return sub {
-        return undef if $ends;
+        return undef if $ends; ## no critic: Subroutines::ProhibitExplicitReturnUndef
         return $nums[$i++] if $i <= $#nums;
-        if (!$has_ellipsis) { $ends++; return undef }
+        if (!$has_ellipsis) { $ends++; return undef } ## no critic: Subroutines::ProhibitExplicitReturnUndef
 
         $cur //= $nums[-1];
         if ($is_arithmetic) {
@@ -100,7 +100,7 @@ sub _numseq_parse_or_iter {
             if (defined $last_num) {
                 if ($inc >= 0 && $cur > $last_num || $inc < 0 && $cur < $last_num) {
                     $ends++;
-                    return undef;
+                    return undef; ## no critic: Subroutines::ProhibitExplicitReturnUndef
                 }
             }
             return $cur;
@@ -109,7 +109,7 @@ sub _numseq_parse_or_iter {
             if (defined $last_num) {
                 if ($inc >= 1 && $cur > $last_num || $inc < 1 && $cur < $last_num) {
                     $ends++;
-                    return undef;
+                    return undef; ## no critic: Subroutines::ProhibitExplicitReturnUndef
                 }
             }
             return $cur;
