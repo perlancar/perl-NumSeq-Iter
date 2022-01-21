@@ -1,15 +1,16 @@
 package NumSeq::Iter;
 
-# AUTHORITY
-# DATE
-# DIST
-# VERSION
-
 use 5.010001;
 use strict;
 use warnings;
 
 use Exporter qw(import);
+
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
+
 our @EXPORT_OK = qw(numseq_iter numseq_parse);
 
 my $re_num = qr/(?:[+-]?[0-9]+(?:\.[0-9]+)?)/;
@@ -145,10 +146,16 @@ sub numseq_parse {
   my $iter = numseq_iter('1,3,5,...,13');
   while (my $val = $iter->()) { ... } # 1,3,5,7,9,11,13
 
-  my $res = numseq_parse(''); # [400, "Parse fail: Please specify one or more number in number sequence"]
-  my $res = numseq_parse('1,3,5');        # [200, "OK", {numbers=>[1,2,3], has_ellipsis=>0, type=>'arithmetic', inc=>2}]
-  my $res = numseq_parse('1,3,9,...');    # [200, "OK", {numbers=>[1,3,9], has_ellipsis=>1, last_number=>undef, type=>'geometric', inc=>3}]
-  my $res = numseq_parse('1,3,5,...,10'); # [200, "OK", {numbers=>[1,2,3], has_ellipsis=>1, last_number=>10, type=>'arithmetic', inc=>2}]
+  $iter = numseq_iter('1,3,5,...,10');
+  while (my $val = $iter->()) { ... } # 1,3,5,7,9
+
+  my $res = numseq_parse('');             # [400, "Parse fail: Please specify one or more number in number sequence: ''"]
+  my $res = numseq_parse('1,5,2');        # [200, "OK", {numbers=>[1,5,2], has_ellipsis=>0, type=>'itemized', inc=>undef}]
+  my $res = numseq_parse('1,2,3');        # [200, "OK", {numbers=>[1,2,3], has_ellipsis=>0, type=>'itemized', inc=>undef}]
+  my $res = numseq_parse('1,2,3,...');    # [200, "OK", {numbers=>[1,2,3], has_ellipsis=>1, type=>'arithmetic', inc=>1, last_number=>undef}]
+  my $res = numseq_parse('1,3,9,...');    # [200, "OK", {numbers=>[1,3,9], has_ellipsis=>1, type=>'geometric',  inc=>3, last_number=>undef}]
+  my $res = numseq_parse('1,3,5,...,13'); # [200, "OK", {numbers=>[1,3,5], has_ellipsis=>1, type=>'arithmetic', inc=>2, last_number=>13}]
+  my $res = numseq_parse('2,3,5,...');    # [400, "Parse fail: Can't determine the pattern from number sequence: 2, 3, 5"]
 
 
 =head1 DESCRIPTION
