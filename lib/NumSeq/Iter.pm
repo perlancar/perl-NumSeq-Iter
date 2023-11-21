@@ -191,8 +191,18 @@ an ellipsis (e.g. '1,2,3,...' or '1, 3, 5, ..., 10').
 When the sequence has an ellipsis, there must be at least three numbers before
 the ellipsis. There can optionally be another number after the ellipsis to make
 the sequence finite; but the last number can also be Inf, +Inf, or -Inf.
-Currently only simple arithmetic sequence ('1,3,5') or simple geometric sequence
-('2,6,18') is recognized.
+
+Currently these sequences are recognized:
+
+=over
+
+=item * simple arithmetic sequence ('1,3,5')
+
+=item * simple geometric sequence ('2,6,18')
+
+=item * fibonacci ('2,3,5')
+
+=back
 
 
 =head1 FUNCTIONS
