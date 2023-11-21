@@ -175,7 +175,7 @@ sub numseq_parse {
   my $res = numseq_parse('1,3,9,...');    # [200, "OK", {numbers=>[1,3,9], has_ellipsis=>1, type=>'geometric',  inc=>3, last_number=>undef}]
   my $res = numseq_parse('1,3,5,...,13'); # [200, "OK", {numbers=>[1,3,5], has_ellipsis=>1, type=>'arithmetic', inc=>2, last_number=>13}]
   my $res = numseq_parse('2,3,5,...');    # [200, "OK", {numbers=>[1,3,5], has_ellipsis=>1, type=>'fibonacci'}]
-  my $res = numseq_parse('2,3,7,...');    # [400, "Parse fail: Can't determine the pattern from number sequence: 2, 3, 5"]
+  my $res = numseq_parse('2,3,7,...');    # [400, "Parse fail: Can't determine the pattern from number sequence: 2, 3, 7"]
 
 
 =head1 DESCRIPTION
