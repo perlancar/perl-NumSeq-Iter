@@ -39,7 +39,8 @@ sub _numseq_parse_or_iter {
     }
     die "Extraneous token in number sequence: $numseq, please only use 'a,b,c, ...' or 'a,b,c,...,z'" if length $numseq;
 
-    my ($is_arithmetic, $is_geometric, $inc);
+    my $type = '';
+    my $inc;
   CHECK_SEQ_TYPE: {
         last unless $has_ellipsis;
 
@@ -51,7 +52,7 @@ sub _numseq_parse_or_iter {
                     last CHECK_ARITHMETIC;
                 }
             }
-            $is_arithmetic++;
+            $type = 'arithmetic';
             $inc = $inc0;
             last CHECK_SEQ_TYPE;
         }
@@ -68,8 +69,18 @@ sub _numseq_parse_or_iter {
                     }
                 }
             }
-            $is_geometric++;
+            $type = 'geometric';
             $inc = $inc0;
+            last CHECK_SEQ_TYPE;
+        }
+
+      CHECK_FIBONACCI: {
+            last if @nums < 3;
+            last if defined $last_num; # currently not supported
+            for (2..$#nums) {
+                last unless $nums[$_] == $nums[$_-1]+$nums[$_-2];
+            }
+            $type = 'fibonacci';
             last CHECK_SEQ_TYPE;
         }
 
@@ -81,21 +92,22 @@ sub _numseq_parse_or_iter {
             numbers => \@nums,
             has_ellipsis => $has_ellipsis,
             ($has_ellipsis ? (last_number => $last_num) : ()),
-            type => $is_arithmetic ? 'arithmetic' : ($is_geometric ? 'geometric' : 'itemized'),
-            inc => $inc,
+            type => $type || 'itemized',
+            (defined $inc ? (inc => $inc) : ()),
         };
     }
 
     my $i = 0;
     my $cur;
     my $ends;
+    my @buf;
     return sub {
         return undef if $ends; ## no critic: Subroutines::ProhibitExplicitReturnUndef
         return $nums[$i++] if $i <= $#nums;
         if (!$has_ellipsis) { $ends++; return undef } ## no critic: Subroutines::ProhibitExplicitReturnUndef
 
         $cur //= $nums[-1];
-        if ($is_arithmetic) {
+        if ($type eq 'arithmetic') {
             $cur += $inc;
             if (defined $last_num) {
                 if ($inc >= 0 && $cur > $last_num || $inc < 0 && $cur < $last_num) {
@@ -104,7 +116,7 @@ sub _numseq_parse_or_iter {
                 }
             }
             return $cur;
-        } elsif ($is_geometric) {
+        } elsif ($type eq 'geometric') {
             $cur *= $inc;
             if (defined $last_num) {
                 if ($inc >= 1 && $cur > $last_num || $inc < 1 && $cur < $last_num) {
@@ -113,6 +125,13 @@ sub _numseq_parse_or_iter {
                 }
             }
             return $cur;
+        } elsif ($type eq 'fibonacci') {
+            @buf = ($nums[-1], $nums[-2]) unless @buf;
+            $cur = $buf[1] + $buf[0];
+            unshift @buf, $cur; pop @buf;
+            return $cur;
+        } else {
+            die "BUG: Can't generate items for sequence of type '$type'";
         }
     };
 }
@@ -155,7 +174,8 @@ sub numseq_parse {
   my $res = numseq_parse('1,2,3,...');    # [200, "OK", {numbers=>[1,2,3], has_ellipsis=>1, type=>'arithmetic', inc=>1, last_number=>undef}]
   my $res = numseq_parse('1,3,9,...');    # [200, "OK", {numbers=>[1,3,9], has_ellipsis=>1, type=>'geometric',  inc=>3, last_number=>undef}]
   my $res = numseq_parse('1,3,5,...,13'); # [200, "OK", {numbers=>[1,3,5], has_ellipsis=>1, type=>'arithmetic', inc=>2, last_number=>13}]
-  my $res = numseq_parse('2,3,5,...');    # [400, "Parse fail: Can't determine the pattern from number sequence: 2, 3, 5"]
+  my $res = numseq_parse('2,3,5,...');    # [200, "OK", {numbers=>[1,3,5], has_ellipsis=>1, type=>'fibonacci'}]
+  my $res = numseq_parse('2,3,7,...');    # [400, "Parse fail: Can't determine the pattern from number sequence: 2, 3, 5"]
 
 
 =head1 DESCRIPTION
